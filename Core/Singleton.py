@@ -1,4 +1,4 @@
-#싱글톤 클래스
+#싱글톤
 class Singleton(type):
     _instances = {}
 
