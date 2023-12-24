@@ -55,9 +55,9 @@ class ThreadJob:
             #일단 텍스트 파일에서 읽어오기
             #나중에 api 방식으로 가져오는 기능을 모방해서 작성
             while True:
-                if len(self.insta.TestIDList) > 0 and self.insta.TestIDQue.qsize() < 5:
-                    target_id = self.insta.TestIDList.pop(0)  # 리스트에서 첫 번째 데이터를 가져옴
-                    self.insta.TestIDQue.put(target_id)  # 큐에 데이터 추가
+                while len(self.insta.TestIDList) > 0 and self.insta.TestIDQue.qsize() < 5:
+                        target_id = self.insta.TestIDList.pop(0)  # 리스트에서 첫 번째 데이터를 가져옴
+                        self.insta.TestIDQue.put(target_id)  # 큐에 데이터 추가
 
                 #일단 대안이 없어서 2분 쉬는거로 테스트
                 #프록시를 추가해 보면 가능해 보인다.
