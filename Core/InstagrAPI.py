@@ -40,6 +40,7 @@ class InstagrAPI(CommonAPI):
         try:
 
             self.ReadUserList()
+            self.Login()
             self.ReadTestIDList()
 
         except Exception as e:
@@ -86,7 +87,6 @@ class InstagrAPI(CommonAPI):
             print(f'ReadTestIDList 에러 발생: {e}')
 
     # endregion
-
 
     #region == Login() [로그인(전체 계정)] ==
     def Login(self):
@@ -153,26 +153,46 @@ class InstagrAPI(CommonAPI):
         try:
             print(f'사용자: {user.UserName}')
             print(f'팔로우대상: {targetid}')
-            # user.Client.delay_range = [1, 3]
-            # user_id = user.Client.user_id_from_username(line.strip())
-            #
-            # if user_id:
-            #     user.Client.user_follow(user_id)
-            #     print(f"Following {user_id}")
-            # else:
-            #     print(f"User {user_id} not found")
-            return f'성공'
+            user.Client.delay_range = [1, 3]
+            user_id = user.Client.user_id_from_username(targetid)
+
+            result = f'계정명: {user.UserName}'
+
+            if user_id:
+                user.Client.user_follow(user_id)
+                result += f"팔로우 성공 {targetid}"
+            else:
+                result += f"팔로우 실패 {targetid}"
+
+            return result
         except LoginRequired:
             user.Client.relogin()  # Use clean session
-            # self.insta.UserList[1].Client.dump_settings(file)
-            # print('에러: Initialize')
-            return f'에러: Initialize'
+            user.Client.dump_settings(f"{user.UserName}.json")
+            return f'에러: Follow LoginRequired'
+        # except LoginRequired:
+        #     self.ReLoginQue.put(user)
+        #     return f'에러: Initialize'
         except Exception as e:
             # print(f'Login 에러 발생: {e}')
             return f'Follow 에러 발생: {e}'
 
     #endregion
 
+    #region == Logger() [재 로그인] ==
+
+    def ReLogin(self,user,line):
+        try:
+
+            return f'사용자: {user.UserName} 팔로우대상: {line.strip()}'
+        except LoginRequired:
+            user.Client.relogin()  # Use clean session
+
+            return f'에러: Initialize'
+        except OSError:
+            return f'에러: Initialize'
+            #print('에러: Initialize')
+
+    #endregion
 
     #endregion
 

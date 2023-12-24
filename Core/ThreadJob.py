@@ -1,5 +1,12 @@
 from instagrapi.exceptions import (
+    BadPassword,
+    ChallengeRequired,
+    FeedbackRequired,
     LoginRequired,
+    PleaseWaitFewMinutes,
+    RecaptchaChallengeForm,
+    ReloginAttemptExceeded,
+    SelectContactPointRecoveryForm,
 )
 import threading
 from Core.InstagrAPI import InstagrAPI
@@ -29,7 +36,7 @@ class ThreadJob:
 
     def start(self):
         # 스레드 시작
-        # self.Loginthread.start()
+        self.Loginthread.start()
         self.Followthread.start()
         pass
     def stop(self):
@@ -45,7 +52,7 @@ class ThreadJob:
                 tagetid = self.insta.TestIDQue.get()
 
                 #소비자 실행(큐 소비)
-                start_time = time.time()  # 작업 시작 시간 기록
+                #start_time = time.time()  # 작업 시작 시간 기록
 
                 #병렬 작업 등록(풀링)
                 #각 작업 대상 id별로 팔로우 작업을 작업 계정에 동시에 등록
@@ -58,27 +65,14 @@ class ThreadJob:
                 for future in results:
                     print(future.result())  # 결과 출력
 
-                end_time = time.time()  # 작업 종료 시간 기록
-                elapsed_time = end_time - start_time  # 경과 시간 계산
-                print(f"테스트 팔로우 완료되었습니다. 소요된 시간: {elapsed_time}초")
+                #end_time = time.time()  # 작업 종료 시간 기록
+                #elapsed_time = end_time - start_time  # 경과 시간 계산
+                #print(f"테스트 팔로우 완료되었습니다. 소요된 시간: {elapsed_time}초")
+                time.sleep(1)
 
-            # for line in self.insta.Follow:
-            #
-            #     #병렬 처리
-            #
-            #     self.insta.UserList[1].Client.delay_range = [1, 3]
-            #     # print(line.strip())  # 각 줄의 데이터 출력 (strip()으로 공백 제거)
-            #     user_id = self.insta.UserList[1].Client.user_id_from_username(line.strip())
-            #     if user_id:
-            #         self.insta.UserList[1].Client.user_follow(user_id)
-            #         print(f"Following {user_id}")
-            #     else:
-            #         print(f"User {user_id} not found")
+        except PleaseWaitFewMinutes:
+            pass
 
-
-            # end_time = time.time()  # 작업 종료 시간 기록
-            # elapsed_time = end_time - start_time  # 경과 시간 계산
-            # print(f"작업이 완료되었습니다. 소요된 시간: {elapsed_time}초")
         except LoginRequired:
             self.insta.UserList[1].Client.relogin()  # Use clean session
             # self.insta.UserList[1].Client.dump_settings(file)
@@ -99,26 +93,14 @@ class ThreadJob:
     #             bot.dump_settings(SESSION_JSON)
     #             counter = counter - 1
 
-    def Logger(self,user,line):
-        try:
-
-            return f'사용자: {user.UserName} 팔로우대상: {line.strip()}'
-        except LoginRequired:
-            user.Client.relogin()  # Use clean session
-
-            return f'에러: Initialize'
-        except OSError:
-            return f'에러: Initialize'
-            #print('에러: Initialize')
-
     #재로그인
     #재로그인 대상은 큐에 담아 이리로 전달 한다.
     def ReLoginWork(self):
         try:
             while True:
-                data = self.data_queue.get()  # 큐에서 데이터 가져오기 (무한 대기)
+                data = self.insta.ReLoginQue.get()  # 큐에서 데이터 가져오기 (무한 대기)
                 # 가져온 데이터에 대한 작업 수행
                 print(f"Consumed: {data}")
 
         except OSError:
-            print('에러: Initialize')
+            print('에러: ReLoginWork')
