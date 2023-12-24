@@ -1,6 +1,15 @@
 from Core.CommonAPI import CommonAPI
 from instagrapi import Client
-from instagrapi.exceptions import LoginRequired
+from instagrapi.exceptions import (
+    BadPassword,
+    ChallengeRequired,
+    FeedbackRequired,
+    LoginRequired,
+    PleaseWaitFewMinutes,
+    RecaptchaChallengeForm,
+    ReloginAttemptExceeded,
+    SelectContactPointRecoveryForm,
+)
 import os
 import requests
 from bs4 import BeautifulSoup
@@ -18,6 +27,7 @@ class InstagrAPI(CommonAPI):
 
         # 로그인리스트
         self.UserList = []
+        self.TestIDList = []
         # 테스트 계정 대상
         self.TestIDQue = queue.Queue()
         # 재 로그인 대상자
@@ -40,8 +50,11 @@ class InstagrAPI(CommonAPI):
         try:
 
             self.ReadUserList()
+            print(f'계정 정보 불러오기 완료')
             self.Login()
+            print('로그인 완료')
             self.ReadTestIDList()
+            print('테스트 계정 정보 읽기 완료')
 
         except Exception as e:
              print(f'Initialize 에러 발생: {e}')
@@ -61,7 +74,7 @@ class InstagrAPI(CommonAPI):
                 print(f"계정: {data[0]} 비밀번호: {data[1]}")
                 self.UserList.append(User(data[0], data[1]))
 
-            print(f'계정 정보 세팅 완료')
+            # print(f'계정 정보 세팅 완료')
 
         except Exception as e:
             print(f'ReadUserList 에러 발생: {e}')
@@ -75,13 +88,13 @@ class InstagrAPI(CommonAPI):
             # 테스트 계정 불러오기
             file_path = Config.TestIDListPath
             with open(file_path, 'r') as file:
-                test_accounts = file.readlines()
+                self.TestIDList = [line.strip() for line in file.readlines()]
 
-            # 큐에 담기(생성자 소비자 패턴 사용 위함)
-            for account in test_accounts:
-                self.TestIDQue.put(account.strip())
+            # # 큐에 담기(생성자 소비자 패턴 사용 위함)
+            # for account in test_accounts:
+            #     self.TestIDQue.put(account.strip())
 
-            print('테스트 계정 정보 읽기 완료')
+            # print('테스트 계정 정보 읽기 완료')
 
         except Exception as e:
             print(f'ReadTestIDList 에러 발생: {e}')

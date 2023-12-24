@@ -16,8 +16,9 @@ class MyWindow(QMainWindow):
         # self.setGeometry(500, 500, 1000, 500)
         loadUi('mainwindow.ui', self)
         self.loginButton.clicked.connect(self.LoginClick)
-        self.followbutton.clicked.connect(self.FollowClick)
-
+        # self.followbutton.clicked.connect(self.FollowClick)
+        self.teststart.clicked.connect(self.TestStart)
+        self.teststop.clicked.connect(self.TestStop)
 
         self.model = QStandardItemModel()
         for x in self.insta.UserList:
@@ -67,7 +68,7 @@ class MyWindow(QMainWindow):
     def Initialize(self):
         self.insta = InstagrAPI.GetInstance()
         self.Mainthread = ThreadJob.GetInstance()
-        self.Mainthread.start()
+        # self.Mainthread.start()
 
     def LoginClick(self):
         try:
@@ -81,6 +82,20 @@ class MyWindow(QMainWindow):
             pass
             # self.insta.Follow()
             #print('로그인 완료')
+        except Exception as e:
+            QMessageBox.about(self, '에러', str(e))
+
+    def TestStart(self):
+        try:
+            self.Mainthread.start()
+
+        except Exception as e:
+            QMessageBox.about(self, '에러', str(e))
+
+    def TestStop(self):
+        try:
+            self.Mainthread.stop()
+
         except Exception as e:
             QMessageBox.about(self, '에러', str(e))
 

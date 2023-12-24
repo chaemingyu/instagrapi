@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>455</width>
+    <width>484</width>
     <height>403</height>
    </rect>
   </property>
@@ -37,17 +37,30 @@
      </rect>
     </property>
    </widget>
-   <widget class="QPushButton" name="followbutton">
+   <widget class="QPushButton" name="teststart">
     <property name="geometry">
      <rect>
       <x>320</x>
       <y>10</y>
-      <width>93</width>
+      <width>131</width>
       <height>28</height>
      </rect>
     </property>
     <property name="text">
-     <string>팔로우</string>
+     <string>팔로우테스트시작</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="teststop">
+    <property name="geometry">
+     <rect>
+      <x>320</x>
+      <y>50</y>
+      <width>131</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>팔로우테스트종료</string>
     </property>
    </widget>
   </widget>
@@ -56,7 +69,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>455</width>
+     <width>484</width>
      <height>26</height>
     </rect>
    </property>
