@@ -15,9 +15,12 @@ import requests
 from bs4 import BeautifulSoup
 from Core import Config
 from Core.User import User
+from Core.User import IP
 import queue  # queue 모듈 import
-
+import random
+import requests
 class InstagrAPI(CommonAPI):
+
     # 싱글톤
     _instance = None
 
@@ -28,6 +31,7 @@ class InstagrAPI(CommonAPI):
         # 로그인리스트
         self.UserList = []
         self.TestIDList = []
+        self.IPList = []
         # 테스트 계정 대상
         self.TestIDQue = queue.Queue()
         # 재 로그인 대상자
@@ -45,12 +49,35 @@ class InstagrAPI(CommonAPI):
 
     #region Method()
 
+    # region == handle_instagrapi_exceptions() [공통 예외 처리 함수] ==
+    def handle_instagrapi_exceptions(self, e, user):
+        if isinstance(e, BadPassword):
+            # 예외 처리: 잘못된 비밀번호
+            print("Bad password. Please check your password.")
+        elif isinstance(e, ChallengeRequired):
+            # 예외 처리: 인증이 필요함
+            print("Challenge required. Additional authentication is needed.")
+            # 여기에 추가로 필요한 처리를 수행할 수 있습니다.
+        elif isinstance(e, FeedbackRequired):
+            print(f"Feedback required. {user.UserName}")
+            # 예외 처리: 피드백이 필요함
+            print("Feedback required. Please provide feedback.")
+            # 추가로 필요한 처리를 수행할 수 있습니다.
+        # 다른 예외들에 대한 처리도 위와 같은 방식으로 추가할 수 있습니다.
+        else:
+            # Instagrapi에서 발생한 다른 예외들을 여기서 처리합니다.
+            print(f"Unhandled Instagrapi exception: {type(e).__name__}. Error: {e}")
+    # endregion
+
+
     #region == Initialize() [초기화] ==
     def Initialize(self):
         try:
 
             self.ReadUserList()
             print(f'계정 정보 불러오기 완료')
+            self.ReadIPList()
+            print(f'프록시 IP 불러오기 완료')
             self.Login()
             print('로그인 완료')
             self.ReadTestIDList()
@@ -101,6 +128,35 @@ class InstagrAPI(CommonAPI):
 
     # endregion
 
+    # region == ReadIPList() [유동 IP 정보 읽기] ==
+
+    def ReadIPList(self):
+        try:
+
+            file_path = Config.IPlistPath
+            with open(file_path, 'r') as file:
+
+                lines = file.readlines()
+
+            for line in lines:
+                data = line.strip().split(':')[:2]  # 첫 번째와 두 번째 정보 가져오기
+                # print(f"IP: {data[0]} PORT: {data[1]}")
+                self.IPList.append(IP(data[0], data[1]))
+
+        except Exception as e:
+            print(f'ReadTestIDList 에러 발생: {e}')
+
+    # endregion
+
+    # region == Next_proxy() [프록시 랜덤 설정] ==
+    def Next_proxy(self,username,password):
+
+        ip = random.choice(self.IPList)
+        # print(f"http://{username}:{password}@{ip.IP}:{ip.Port}")
+        return f"http://{username}:{password}@{ip.IP}:{ip.Port}"
+
+    # endregion
+
     #region == Login() [로그인(전체 계정)] ==
     def Login(self):
 
@@ -111,8 +167,18 @@ class InstagrAPI(CommonAPI):
 
                 # 로그인 하지 않은 계정을 대상으로 로그인
                 if user.LoginYn == 'N':
+
+
                     # 클라이언트 객체 생성(여기다 나중에 프록시 작업)
                     user.Client = Client()
+                    # before_ip = user.Client._send_public_request("https://api.ipify.org/")
+                    # print(f"Before: {before_ip}")
+                    # user.Client.set_proxy("http://<api_key>:wifi;ca;;;115.144.233.104:5640")
+                    user.Client.set_proxy(self.Next_proxy(user.UserName,user.Password))
+                    # after_ip = user.Client._send_public_request("https://api.ipify.org/")
+                    # print(f"After: {after_ip}")
+
+                    # user.Client.set_proxy(self.Next_proxy(user.UserName,user.Password))
                     # 계정별 세션 파일
                     session_file = os.path.join(Config.SessionFolderPath, f"{user.UserName}.json")
 
@@ -182,10 +248,11 @@ class InstagrAPI(CommonAPI):
             user.Client.relogin()  # Use clean session
             user.Client.dump_settings(f"{user.UserName}.json")
             return f'에러: Follow LoginRequired'
-        # except LoginRequired:
-        #     self.ReLoginQue.put(user)
-        #     return f'에러: Initialize'
+        # except FeedbackRequired:
+        #     # self.ReLoginQue.put(user)
+        #     return f'FeedbackRequired 에러 발생: {user.UserName}'
         except Exception as e:
+            self.handle_instagrapi_exceptions(e,user)
             # print(f'Login 에러 발생: {e}')
             return f'Follow 에러 발생: {e}'
 

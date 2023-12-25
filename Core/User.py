@@ -1,4 +1,13 @@
-# from instagrapi import Client
+from instagrapi.exceptions import (
+    BadPassword,
+    ChallengeRequired,
+    FeedbackRequired,
+    LoginRequired,
+    PleaseWaitFewMinutes,
+    RecaptchaChallengeForm,
+    ReloginAttemptExceeded,
+    SelectContactPointRecoveryForm,
+)
 
 class User:
     def __init__(self, username, password):
@@ -12,3 +21,9 @@ class User:
 
         # 사용불가여부(3번 정도의 재로그인이 불가능 하다면 폐기 처리 하기 위함)
         self.Disabled = 'N'
+
+
+class IP:
+    def __init__(self, ip, port):
+        self.IP = ip
+        self.Port = port
